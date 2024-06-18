@@ -163,7 +163,7 @@ func Init(opts machineDefine.InitOptions, mp vmconfigs.VMProvider) error {
 	}
 	mc.ImagePath = imagePath
 
-	// TODO The following stanzas should be re-written in a differeent place.  It should have a custom
+	// TODO The following stanzas should be re-written in a different place.  It should have a custom
 	// parser for our image pulling.  It would be nice if init just got an error and mydisk back.
 	//
 	// Eventual valid input:
