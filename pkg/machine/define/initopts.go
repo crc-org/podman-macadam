@@ -21,4 +21,5 @@ type InitOptions struct {
 	UID                string // uid of the user that called machine
 	UserModeNetworking *bool  // nil = use backend/system default, false = disable, true = enable
 	USBs               []string
+	ImagePuller        ImagePuller
 }
