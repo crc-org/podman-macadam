@@ -6,6 +6,18 @@ import (
 	"go.podman.io/image/v5/types"
 )
 
+type MachineCapabilities struct {
+	ForwardSockets bool
+}
+
+func (caps *MachineCapabilities) GetForwardSockets() bool {
+	if caps == nil {
+		// if there are no known capabilities, honor default podman-machine behaviour
+		return true
+	}
+	return caps.ForwardSockets
+}
+
 type InitOptions struct {
 	PlaybookPath       string
 	CPUS               uint64
@@ -29,4 +41,5 @@ type InitOptions struct {
 	SkipTlsVerify      types.OptionalBool
 	ImagePuller        ImagePuller
 	CloudInit          bool
+	Capabilities       *MachineCapabilities
 }
