@@ -55,7 +55,8 @@ type MachineConfig struct {
 
 	Ansible *AnsibleConfig
 
-	CloudInit bool
+	CloudInit    bool
+	Capabilities *define.MachineCapabilities
 }
 
 type VMProvider interface { //nolint:interfacebloat
