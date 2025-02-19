@@ -36,7 +36,7 @@ func GetRootlessRuntimeDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	rtDir := env.GetRuntimeDir()
+	rtDir := env.GetRuntimeDirSuffix()
 	runtimeDir := filepath.Join(data, "containers", rtDir)
 	return runtimeDir, nil
 }
