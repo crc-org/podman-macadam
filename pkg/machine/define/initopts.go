@@ -28,4 +28,5 @@ type InitOptions struct {
 	USBs               []string
 	SkipTlsVerify      types.OptionalBool
 	ImagePuller        ImagePuller
+	CloudInit          bool
 }

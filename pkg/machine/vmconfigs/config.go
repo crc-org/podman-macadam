@@ -54,6 +54,8 @@ type MachineConfig struct {
 	Rosetta bool
 
 	Ansible *AnsibleConfig
+
+	CloudInit bool
 }
 
 type VMProvider interface { //nolint:interfacebloat
