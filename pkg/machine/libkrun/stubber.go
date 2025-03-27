@@ -123,7 +123,7 @@ func (l *LibKrunStubber) UserModeNetworkEnabled(mc *vmconfigs.MachineConfig) boo
 	return true
 }
 
-func (l *LibKrunStubber) UseProviderNetworkSetup() bool {
+func (l *LibKrunStubber) UseProviderNetworkSetup(_ *vmconfigs.MachineConfig) bool {
 	return false
 }
 

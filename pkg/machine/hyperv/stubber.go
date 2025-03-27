@@ -29,11 +29,11 @@ type HyperVStubber struct {
 }
 
 func (h HyperVStubber) UserModeNetworkEnabled(mc *vmconfigs.MachineConfig) bool {
-	return true
+	return mc.HyperVHypervisor.UserModeNetworking
 }
 
-func (h HyperVStubber) UseProviderNetworkSetup() bool {
-	return false
+func (h HyperVStubber) UseProviderNetworkSetup(mc *vmconfigs.MachineConfig) bool {
+	return mc.HyperVHypervisor.UserModeNetworking == false
 }
 
 func (h HyperVStubber) RequireExclusiveActive() bool {
@@ -55,12 +55,16 @@ func (h HyperVStubber) CreateVM(opts define.CreateVMOpts, mc *vmconfigs.MachineC
 		Memory:   uint64(mc.Resources.Memory),
 	}
 
-	networkHVSock, err := vsock.NewHVSockRegistryEntry(mc.Name, vsock.Network)
-	if err != nil {
-		return err
-	}
+	if mc.HyperVHypervisor.UserModeNetworking {
+		networkHVSock, err := vsock.NewHVSockRegistryEntry(mc.Name, vsock.Network)
+		if err != nil {
+			return err
+		}
 
-	mc.HyperVHypervisor.NetworkVSock = *networkHVSock
+		mc.HyperVHypervisor.NetworkVSock = *networkHVSock
+	} else {
+		hwConfig.Network = true
+	}
 
 	// Add vsock port numbers to mounts
 	err = createShares(mc)
@@ -164,7 +168,10 @@ func (h HyperVStubber) RemoveAndCleanMachines(_ *define.MachineDirs) error {
 }
 
 func (h HyperVStubber) StartNetworking(mc *vmconfigs.MachineConfig, cmd *gvproxy.GvproxyCommand) error {
-	cmd.AddEndpoint(fmt.Sprintf("vsock://%s", mc.HyperVHypervisor.NetworkVSock.KeyName))
+	if mc.HyperVHypervisor.UserModeNetworking {
+		cmd.AddEndpoint(fmt.Sprintf("vsock://%s", mc.HyperVHypervisor.NetworkVSock.KeyName))
+		return nil
+	}
 	return nil
 }
 
