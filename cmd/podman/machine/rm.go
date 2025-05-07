@@ -3,6 +3,8 @@
 package machine
 
 import (
+	"errors"
+
 	"github.com/containers/podman/v5/cmd/podman/registry"
 	"github.com/containers/podman/v5/libpod/events"
 	"github.com/containers/podman/v5/pkg/machine"
@@ -65,7 +67,7 @@ func rm(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := shim.Remove(mc, provider, dirs, destroyOptions); err != nil {
+	if err := shim.Remove(mc, provider, dirs, destroyOptions); err != nil && !errors.Is(err, shim.ErrRemoveUserCancelled) {
 		return err
 	}
 	newMachineEvent(events.Remove, events.Event{Name: vmName})
