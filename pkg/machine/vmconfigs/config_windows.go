@@ -14,6 +14,7 @@ type HyperVConfig struct {
 	ReadyVsock vsock.HVSockRegistryEntry
 	// NetworkVSock is for the user networking
 	NetworkVSock vsock.HVSockRegistryEntry
+	IPAddress    string
 }
 
 type WSLConfig struct {
