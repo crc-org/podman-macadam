@@ -16,6 +16,7 @@ import (
 	gvproxy "github.com/containers/gvisor-tap-vsock/pkg/types"
 	"github.com/containers/libhvee/pkg/hypervctl"
 	"github.com/containers/podman/v5/pkg/machine"
+	"github.com/containers/podman/v5/pkg/machine/cloudinit"
 	"github.com/containers/podman/v5/pkg/machine/define"
 	"github.com/containers/podman/v5/pkg/machine/env"
 	"github.com/containers/podman/v5/pkg/machine/hyperv/vsock"
@@ -54,6 +55,15 @@ func (h HyperVStubber) CreateVM(opts define.CreateVMOpts, mc *vmconfigs.MachineC
 		DiskPath: mc.ImagePath.GetPath(),
 		DiskSize: uint64(mc.Resources.DiskSize),
 		Memory:   uint64(mc.Resources.Memory),
+	}
+
+	if mc.CloudInit {
+		// Generate cloud-init ISO
+		iso, err := cloudinit.GenerateISO(mc)
+		if err != nil {
+			return fmt.Errorf("generating cloud-init ISO: %w", err)
+		}
+		hwConfig.DVDDiskPath = iso
 	}
 
 	if mc.HyperVHypervisor.UserModeNetworking {
