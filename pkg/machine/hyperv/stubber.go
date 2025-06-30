@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -155,8 +156,10 @@ func (h HyperVStubber) Remove(mc *vmconfigs.MachineConfig) ([]string, func() err
 		// Remove ignition registry entries - not a fatal error
 		// for vm removal
 		// TODO we could improve this by recommending an action be done
-		if err := removeIgnitionFromRegistry(vm); err != nil {
-			logrus.Errorf("unable to remove ignition registry entries: %q", err)
+		if !mc.CloudInit {
+			if err := removeIgnitionFromRegistry(vm); err != nil {
+				logrus.Errorf("unable to remove ignition registry entries: %q", err)
+			}
 		}
 
 		// disk path removal is done by generic remove
@@ -215,15 +218,21 @@ func (h HyperVStubber) StartVM(mc *vmconfigs.MachineConfig) (func() error, func(
 		callbackFuncs.Add(rmIgnCallbackFunc)
 	}
 
-	waitReady, listener, err := mc.HyperVHypervisor.ReadyVsock.ListenSetupWait()
-	if err != nil {
-		return nil, nil, err
+	var waitReady func() error
+	var listener io.Closer
+	if mc.HyperVHypervisor.ReadyVsock.KeyName != "" {
+		waitReady, listener, err = mc.HyperVHypervisor.ReadyVsock.ListenSetupWait()
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	err = vm.Start()
 	if err != nil {
 		// cleanup the pending listener
-		_ = listener.Close()
+		if listener != nil {
+			_ = listener.Close()
+		}
 		return nil, nil, err
 	}
 
@@ -466,18 +475,22 @@ func resizeDisk(newSize strongunits.GiB, imagePath *define.VMFile) error {
 	return nil
 }
 
+func removeVsockFromRegistry(vsock vsock.HVSockRegistryEntry) {
+	if vsock.KeyName != "" {
+		if err := vsock.Remove(); err != nil {
+			logrus.Errorf("unable to remove registry entry for %s: %q", vsock.KeyName, err)
+		}
+	}
+}
+
 // removeNetworkAndReadySocketsFromRegistry removes the Network and Ready sockets
 // from the Windows Registry
 func removeNetworkAndReadySocketsFromRegistry(mc *vmconfigs.MachineConfig) {
 	// Remove the HVSOCK for networking
-	if err := mc.HyperVHypervisor.NetworkVSock.Remove(); err != nil {
-		logrus.Errorf("unable to remove registry entry for %s: %q", mc.HyperVHypervisor.NetworkVSock.KeyName, err)
-	}
+	removeVsockFromRegistry(mc.HyperVHypervisor.NetworkVSock)
 
 	// Remove the HVSOCK for events
-	if err := mc.HyperVHypervisor.ReadyVsock.Remove(); err != nil {
-		logrus.Errorf("unable to remove registry entry for %s: %q", mc.HyperVHypervisor.ReadyVsock.KeyName, err)
-	}
+	removeVsockFromRegistry(mc.HyperVHypervisor.ReadyVsock)
 }
 
 // readAndSplitIgnition reads the ignition file and splits it into key:value pairs
