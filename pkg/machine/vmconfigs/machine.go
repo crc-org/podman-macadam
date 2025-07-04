@@ -312,6 +312,13 @@ func (mc *MachineConfig) ConnectionInfo(vmtype define.VMType) (*define.VMFile, *
 	return socket, getPipe(mc.Name), err
 }
 
+func (mc *MachineConfig) GetAddress() string {
+	if mc.IPAddress != "" {
+		return mc.IPAddress
+	}
+	return "localhost"
+}
+
 // LoadMachineByName returns a machine config based on the vm name and provider
 func LoadMachineByName(name string, dirs *define.MachineDirs) (*MachineConfig, error) {
 	fullPath, err := dirs.ConfigDir.AppendToNewVMFile(name+".json", nil)
