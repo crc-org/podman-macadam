@@ -448,7 +448,7 @@ func (h HyperVStubber) PostStartNetworking(mc *vmconfigs.MachineConfig, noInfo b
 		return err
 	}
 	// GvProxy PID file path is now derived
-	gvproxyPIDFile, err := dirs.RuntimeDir.AppendToNewVMFile("gvproxy.pid", nil)
+	gvproxyPIDFile, err := machine.GetGVProxyPIDFile(mc, dirs)
 	if err != nil {
 		return err
 	}
