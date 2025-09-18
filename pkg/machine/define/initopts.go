@@ -51,5 +51,5 @@ type InitOptions struct {
 	ImagePuller        ImagePuller
 	CloudInit          bool
 	Capabilities       *MachineCapabilities
-	CloudInitFiles     []string // user-data, meta-data and network-config cloud-init configuration file paths
+	CloudInitPaths     []string // user-data, meta-data and network-config cloud-init configuration file paths
 }
