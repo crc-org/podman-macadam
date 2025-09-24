@@ -1,5 +1,21 @@
 # Release Notes
 
+## 5.6.1
+### Security
+- This release addresses CVE-2025-9566, where Kubernetes YAML run by `podman play kube` containing `ConfigMap` and `Secret` volumes can use crafted symlinks to overwrite content on the host.
+
+### Bugfixes
+- Fixed a bug where network creation and removal events were displayed incorrectly when the `journald` events driver was in use.
+- Fixed a bug where the `--security-opt seccomp=unconfined` option was broken on Windows ([#26855](https://github.com/containers/podman/issues/26855)).
+- Fixed a bug where containers created with a name longer than 64 characters, no explicit hostname, the the `container_name_as_hostname` option in `containers.conf` set to `true` would fail to start.
+- Fixed a bug where Podman would fail to start containers when runc 1.3.0 or later was used as the OCI runtime ([#26938](https://github.com/containers/podman/issues/26938)).
+
+### Misc
+- Adjusted the systemd-tmpfiles script to recursively remove temporary files directories placed in `/tmp`, ensuring proper operation of Podman after a reboot if `/tmp` is not a tmpfs.
+- Updated Buildah to v1.41.4
+- Updated the containers/storage to v1.59.1
+- Updated the containers/common library to v0.64.2
+
 ## 5.6.0
 ### Features
 - A new set of commands for managing Quadlets has been added as `podman quadlet install` (install a new Quadlet for the current user), `podman quadlet list` (list installed Quadlets), `podman quadlet print` (print the contents of a Quadlet file), and `podman quadlet rm` (remove a Quadlet). These commands are presently not available with the remote Podman client - we expect support for this to arrive in a future release.
@@ -21,6 +37,9 @@
 - The `--tmpfs` option to `podman create` and `podman run` now allows a new option, `noatime`, to be passed (e.g. `podman run --tmpfs /run:noatime ...`) ([#26102](https://github.com/containers/podman/issues/26102)).
 - The `podman update` command now has a new option, `--latest`, to update the latest container instead of specifying a specific container ([#26380](https://github.com/containers/podman/issues/26380)).
 - A new command, `podman buildx inspect`, has been added to improve Docker compatibility ([#13014](https://github.com/containers/podman/issues/13014)).
+
+### Breaking Changes
+- Rosetta support in `podman machine` VMs has been disabled by default due to issues with newer Linux kernels. These issues have been addressed in the Tahoe beta, and we plan on re-enabling support for Rosetta in a future Podman release once the fix is in wider circulation. You can find more details [here](https://blog.podman.io/2025/08/podman-5-6-released-rosetta-status-update/).
 
 ### Changes
 - In preparation for a planned removal of the BoltDB database in Podman 6.0, a warning has been added for installations still using BoltDB. These warnings are presently not visible by default, which will happen in Podman 5.7.
