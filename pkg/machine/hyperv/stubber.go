@@ -23,10 +23,10 @@ import (
 	"github.com/containers/podman/v5/pkg/machine/cloudinit"
 	"github.com/containers/podman/v5/pkg/machine/define"
 	"github.com/containers/podman/v5/pkg/machine/env"
+	"github.com/containers/podman/v5/pkg/machine/hyperv/hutil"
 	"github.com/containers/podman/v5/pkg/machine/hyperv/vsock"
 	"github.com/containers/podman/v5/pkg/machine/ignition"
 	"github.com/containers/podman/v5/pkg/machine/vmconfigs"
-	"github.com/containers/podman/v5/pkg/systemd/parser"
 	"github.com/sirupsen/logrus"
 	"go.podman.io/common/pkg/strongunits"
 )
@@ -119,7 +119,7 @@ func (h HyperVStubber) CreateVM(_ define.CreateVMOpts, mc *vmconfigs.MachineConf
 	callbackFuncs.Add(removeRegistrySockets)
 
 	if builder != nil {
-		netUnitFile, err := createNetworkUnit(mc.HyperVHypervisor.NetworkVSock.Port)
+		netUnitFile, err := hutil.CreateNetworkUnit(mc.HyperVHypervisor.NetworkVSock.Port)
 		if err != nil {
 			return err
 		}
@@ -137,7 +137,7 @@ func (h HyperVStubber) CreateVM(_ define.CreateVMOpts, mc *vmconfigs.MachineConf
 			FileEmbedded1: ignition.FileEmbedded1{
 				Append: nil,
 				Contents: ignition.Resource{
-					Source: ignition.EncodeDataURLPtr(hyperVVsockNMConnection),
+					Source: ignition.EncodeDataURLPtr(hutil.HyperVVsockNMConnection),
 				},
 				Mode: ignition.IntToPtr(0o600),
 			},
@@ -646,34 +646,6 @@ func logCommandToFile(c *exec.Cmd, filename string) (*os.File, error) {
 	c.Stderr = log
 
 	return log, nil
-}
-
-const hyperVVsockNMConnection = `
-[connection]
-id=vsock0
-type=tun
-interface-name=vsock0
-
-[tun]
-mode=2
-
-[802-3-ethernet]
-cloned-mac-address=5A:94:EF:E4:0C:EE
-
-[ipv4]
-method=auto
-
-[proxy]
-`
-
-func createNetworkUnit(netPort uint64) (string, error) {
-	netUnit := parser.NewUnitFile()
-	netUnit.Add("Unit", "Description", "vsock_network")
-	netUnit.Add("Unit", "After", "NetworkManager.service")
-	netUnit.Add("Service", "ExecStart", fmt.Sprintf("/usr/libexec/podman/gvforwarder -preexisting -iface vsock0 -url vsock://2:%d/connect", netPort))
-	netUnit.Add("Service", "ExecStartPost", "/usr/bin/nmcli c up vsock0")
-	netUnit.Add("Install", "WantedBy", "multi-user.target")
-	return netUnit.ToString()
 }
 
 func (h HyperVStubber) GetRosetta(_ *vmconfigs.MachineConfig) (bool, error) {
