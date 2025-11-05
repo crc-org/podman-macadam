@@ -4,26 +4,15 @@ package cloudinit
 
 import (
 	"github.com/containers/podman/v5/pkg/machine/vmconfigs"
-	"github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v3"
 )
 
 func generateDefaultUserData(mc *vmconfigs.MachineConfig) ([]byte, error) {
-	userData, err := getDefaultUserData(mc)
+	userData, err := defaultUserData(mc)
 	if err != nil {
 		return nil, err
 	}
 
-	userDataBytes, err := yaml.Marshal(&userData)
-	if err != nil {
-		logrus.Errorf("Error marshaling to YAML: %v", err)
-		return nil, err
-	}
-
-	headerLine := "#cloud-config\n"
-	userDataBytes = append([]byte(headerLine), userDataBytes...)
-
-	return userDataBytes, nil
+	return userData.Marshal()
 }
 
 func generateUserData(mc *vmconfigs.MachineConfig) ([]byte, error) {
