@@ -8,73 +8,87 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/containers/podman/v5/pkg/machine"
 	"github.com/containers/podman/v5/pkg/machine/hyperv/hutil"
 	"github.com/containers/podman/v5/pkg/machine/vmconfigs"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 )
 
-func GenerateUserData(mc *vmconfigs.MachineConfig) ([]byte, error) {
-	sshKey, err := machine.GetSSHKeys(mc.SSH.IdentityPath)
+func setUserModeNetworkingPart(userData *UserData, mc *vmconfigs.MachineConfig) error {
+	netUnitFile, err := hutil.CreateNetworkUnit(mc.HyperVHypervisor.NetworkVSock.Port)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	userData := UserData{
-		Users: []User{
-			User{
-				Name:    mc.SSH.RemoteUsername,
-				Sudo:    "ALL=(ALL) NOPASSWD:ALL",
-				Shell:   "/bin/bash",
-				Groups:  []string{"users"},
-				SSHKeys: []string{sshKey},
-			},
+	userData.WriteFiles = []WriteFile{
+		{
+			Path:        "/etc/NetworkManager/system-connections/vsock0.nmconnection",
+			Content:     hutil.HyperVVsockNMConnection,
+			Permissions: "0600",
+			Owner:       "root",
+		},
+		{
+			Path:        "/etc/systemd/system/vsock-network.service",
+			Content:     netUnitFile,
+			Permissions: "0644",
+			Owner:       "root",
 		},
 	}
 
-	if mc.HyperVHypervisor != nil && mc.HyperVHypervisor.UserModeNetworking {
-		netUnitFile, err := hutil.CreateNetworkUnit(mc.HyperVHypervisor.NetworkVSock.Port)
+	userData.RunCmd = []string{
+		"install -o root -g root -m 0755 /mnt/gvforwarder /usr/local/bin/gvforwarder",
+		"nmcli connection reload",
+		"systemctl daemon-reload",
+		"systemctl enable --now vsock-network.service",
+	}
+
+	userData.Mounts = [][]string{
+		{"/dev/sr0", "/mnt", "iso9660", "defaults,ro", "0", "0"},
+	}
+
+	return nil
+}
+
+func generateUserData(mc *vmconfigs.MachineConfig) ([]byte, error) {
+	var err error
+	// If user has not provided any custom user-data, generate default
+	// otherwise use the provided one and just add user-mode networking part if needed
+	internalUserData := &UserData{}
+	if mc.CloudInitConfig.UserData == nil {
+		internalUserData, err = getDefaultUserData(mc)
 		if err != nil {
 			return nil, err
 		}
+	}
 
-		userData.WriteFiles = []WriteFile{
-			{
-				Path:        "/etc/NetworkManager/system-connections/vsock0.nmconnection",
-				Content:     hutil.HyperVVsockNMConnection,
-				Permissions: "0600",
-				Owner:       "root",
-			},
-			{
-				Path:        "/etc/systemd/system/vsock-network.service",
-				Content:     netUnitFile,
-				Permissions: "0644",
-				Owner:       "root",
-			},
-		}
-
-		userData.RunCmd = []string{
-			"install -o root -g root -m 0755 /mnt/gvforwarder /usr/local/bin/gvforwarder",
-			"nmcli connection reload",
-			"systemctl daemon-reload",
-			"systemctl enable --now vsock-network.service",
-		}
-
-		userData.Mounts = [][]string{
-			{"/dev/sr0", "/mnt", "iso9660", "defaults,ro", "0", "0"},
+	if mc.HyperVHypervisor != nil && mc.HyperVHypervisor.UserModeNetworking {
+		err = setUserModeNetworkingPart(internalUserData, mc)
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	yamlBytes, err := yaml.Marshal(&userData)
+	internalUserDataBytes, err := yaml.Marshal(internalUserData)
 	if err != nil {
 		logrus.Errorf("Error marshaling to YAML: %v", err)
 		return nil, err
 	}
 
 	headerLine := "#cloud-config\n"
-	yamlBytes = append([]byte(headerLine), yamlBytes...)
-	return yamlBytes, nil
+	internalUserDataBytes = append([]byte(headerLine), internalUserDataBytes...)
+
+	// If user has not provided any custom user-data, return the generated one
+	if mc.CloudInitConfig.UserData == nil {
+		return internalUserDataBytes, nil
+	}
+
+	// if user has provided a custom user-data but we're not on Hyper-V/user-mode networking, return it as-is
+	userUserData, err := mc.CloudInitConfig.UserData.Read()
+	if err != nil {
+		return nil, err
+	}
+
+	return userUserData, nil
 }
 
 func getGvForwarderBytes() ([]byte, error) {
