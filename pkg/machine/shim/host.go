@@ -309,23 +309,47 @@ func Init(opts machineDefine.InitOptions, mp vmconfigs.VMProvider) error {
 	return mc.Write()
 }
 
-// VMExists looks across given providers for a machine's existence.  returns the actual config and found bool
+// VMExists checks if a VM exists by looking at both disk configuration and hypervisor state.
+// It returns the machine config (if found), a boolean indicating if the VM was found, and any error.
+//
+// The function first checks for a local configuration file on disk. If found, it then verifies
+// the VM's existence on the hypervisor. The function treats a missing VM on the hypervisor as
+// non-existent, even if a configuration file exists (e.g., when a VM was deleted externally through hyperv manager).
+//
+// Use cases:
+//  1. Normal case: VM exists with config -> returns (config, true, nil)
+//  2. Orphaned config: Config exists but VM deleted externally -> returns (nil, false, nil)
+//  3. External VM: VM already exists on hypervisor but no config, so it was not created by podman -> returns (nil, true, error)
+//  4. Hypervisor error with config: Config exists but hypervisor check fails -> returns (config, true, nil)
+//     (config is trusted, warning is logged)
 func VMExists(name string, vmstubbers []vmconfigs.VMProvider) (*vmconfigs.MachineConfig, bool, error) {
 	// Look on disk first
 	mcs, err := getMCsOverProviders(vmstubbers)
 	if err != nil {
 		return nil, false, err
 	}
-	if mc, found := mcs[name]; found {
-		return mc.MachineConfig, true, nil
-	}
+	mc, hasConfig := mcs[name]
 	// Check with the provider hypervisor
 	for _, vmstubber := range vmstubbers {
+		// If we have a config and the provider is different, skip it
+		if hasConfig && mc.Provider != nil && vmstubber.VMType() != mc.Provider.VMType() {
+			continue
+		}
+
 		exists, err := vmstubber.Exists(name)
 		if err != nil {
+			if hasConfig {
+				// If we have a config but hypervisor failed at responding, warn and trust the config
+				logrus.Warnf("unable to verify VM %q on hypervisor: %v", name, err)
+				return mc.MachineConfig, true, nil
+			}
 			return nil, false, err
 		}
 		if exists {
+			if hasConfig {
+				return mc.MachineConfig, true, nil
+			}
+			// VM exists in hypervisor but no local config - it was created by something else
 			return nil, true, fmt.Errorf("vm %q already exists on hypervisor", name)
 		}
 	}
