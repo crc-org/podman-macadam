@@ -322,6 +322,7 @@ func Init(opts machineDefine.InitOptions, mp vmconfigs.VMProvider) error {
 //  3. External VM: VM already exists on hypervisor but no config, so it was not created by podman -> returns (nil, true, error)
 //  4. Hypervisor error with config: Config exists but hypervisor check fails -> returns (config, true, nil)
 //     (config is trusted, warning is logged)
+//  5. VM does not exist on hypervisor and no config -> returns (nil, false, nil)
 func VMExists(name string, vmstubbers []vmconfigs.VMProvider) (*vmconfigs.MachineConfig, bool, error) {
 	// Look on disk first
 	mcs, err := getMCsOverProviders(vmstubbers)
@@ -345,13 +346,30 @@ func VMExists(name string, vmstubbers []vmconfigs.VMProvider) (*vmconfigs.Machin
 			}
 			return nil, false, err
 		}
-		if exists {
-			if hasConfig {
-				return mc.MachineConfig, true, nil
-			}
-			// VM exists in hypervisor but no local config - it was created by something else
-			return nil, true, fmt.Errorf("vm %q already exists on hypervisor", name)
+
+		// If the provider explicitly said that the VM doesn't exist, we can return early
+		if exists != nil && !*exists {
+			return nil, false, nil
 		}
+
+		// At this point: The VM exists or the provider (e.g. applehv, libkrun and qemu)
+		// doesn't support the exists check, so we trust the config.
+		// If we have a config, we have a VM.
+		if hasConfig {
+			return mc.MachineConfig, true, nil
+		}
+
+		// Here: we know the Podman VM does not exist as there is no config -
+		// however a VM with that name may exist.
+		// We must handle two cases:
+		// 1. the provider does not support the exists check, so we can say the VM does not exist
+		// 2. the provider supports the exists check, it responded that the VM exists but there is no config
+		//    for it, so it must have been created by something else (e.g. a user created it using HyperV Manager).
+		if exists == nil {
+			return nil, false, nil // VM does not exist
+		}
+
+		return nil, true, fmt.Errorf("vm %q already exists on hypervisor", name) // VM exists on hypervisor but we have no local config
 	}
 	return nil, false, nil
 }
