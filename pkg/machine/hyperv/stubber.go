@@ -164,10 +164,10 @@ func (h HyperVStubber) CreateVM(opts define.CreateVMOpts, mc *vmconfigs.MachineC
 	return err
 }
 
-func (h HyperVStubber) Exists(name string) (bool, error) {
+func (h HyperVStubber) Exists(name string) (*bool, error) {
 	vmm := hypervctl.NewVirtualMachineManager()
 	exists, _, err := vmm.GetMachineExists(name)
-	return exists, err
+	return &exists, err
 }
 
 func (h HyperVStubber) MountType() vmconfigs.VolumeMountType {
