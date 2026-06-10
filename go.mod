@@ -12,7 +12,7 @@ require (
 	github.com/checkpoint-restore/checkpointctl v1.4.0
 	github.com/checkpoint-restore/go-criu/v7 v7.2.0
 	github.com/containernetworking/plugins v1.8.0
-	github.com/containers/buildah v1.43.1
+	github.com/containers/buildah v1.43.2
 	github.com/containers/conmon v2.0.20+incompatible
 	github.com/containers/gvisor-tap-vsock v0.8.8
 	github.com/containers/libhvee v0.10.1-0.20250829163521-178d10e67860
@@ -50,7 +50,7 @@ require (
 	github.com/nxadm/tail v1.4.11
 	github.com/onsi/ginkgo/v2 v2.28.0
 	github.com/onsi/gomega v1.39.1
-	github.com/opencontainers/cgroups v0.0.5
+	github.com/opencontainers/cgroups v0.0.6
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/opencontainers/runtime-spec v1.2.1

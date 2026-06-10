@@ -78,7 +78,7 @@ github.com/containernetworking/cni/pkg/version
 # github.com/containernetworking/plugins v1.8.0
 ## explicit; go 1.24.2
 github.com/containernetworking/plugins/pkg/ns
-# github.com/containers/buildah v1.43.1
+# github.com/containers/buildah v1.43.2
 ## explicit; go 1.24.2
 github.com/containers/buildah
 github.com/containers/buildah/bind
@@ -529,7 +529,7 @@ github.com/onsi/gomega/matchers/support/goraph/edge
 github.com/onsi/gomega/matchers/support/goraph/node
 github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
-# github.com/opencontainers/cgroups v0.0.5
+# github.com/opencontainers/cgroups v0.0.6
 ## explicit; go 1.23.0
 github.com/opencontainers/cgroups
 github.com/opencontainers/cgroups/devices/config

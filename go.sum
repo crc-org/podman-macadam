@@ -55,8 +55,8 @@ github.com/containernetworking/cni v1.3.0 h1:v6EpN8RznAZj9765HhXQrtXgX+ECGebEYEm
 github.com/containernetworking/cni v1.3.0/go.mod h1:Bs8glZjjFfGPHMw6hQu82RUgEPNGEaBb9KS5KtNMnJ4=
 github.com/containernetworking/plugins v1.8.0 h1:WjGbV/0UQyo8A4qBsAh6GaDAtu1hevxVxsEuqtBqUFk=
 github.com/containernetworking/plugins v1.8.0/go.mod h1:JG3BxoJifxxHBhG3hFyxyhid7JgRVBu/wtooGEvWf1c=
-github.com/containers/buildah v1.43.1 h1:hZO/b0BxDTu38vVc3CaUhe1q3s+q2Y3goeY6QRqm4Qg=
-github.com/containers/buildah v1.43.1/go.mod h1:LSi6Syf+ntc1g0WcUa7yb5dT1W2KzA//+aW+TLgj1os=
+github.com/containers/buildah v1.43.2 h1:KbxgDNWtbMTQtbSElh4e/n8pJa9EDF+/jtIKPr1QtZI=
+github.com/containers/buildah v1.43.2/go.mod h1:dXSaAu+S9aiY0j1teX+7btxBKSZlLfWU5LXnXwPaxf8=
 github.com/containers/common v0.62.2 h1:xO45OOoeq17EZMIDZoSyRqg7GXGcRHa9sXlrr75zH+U=
 github.com/containers/common v0.62.2/go.mod h1:veFiR9iq2j3CHXtB4YnPHuOkSRdhIQ3bAY8AFMP/5bE=
 github.com/containers/conmon v2.0.20+incompatible h1:YbCVSFSCqFjjVwHTPINGdMX1F6JXHGTUje2ZYobNrkg=
@@ -300,8 +300,8 @@ github.com/onsi/ginkgo/v2 v2.28.0 h1:Rrf+lVLmtlBIKv6KrIGJCjyY8N36vDVcutbGJkyqjJc
 github.com/onsi/ginkgo/v2 v2.28.0/go.mod h1:ArE1D/XhNXBXCBkKOLkbsb2c81dQHCRcF5zwn/ykDRo=
 github.com/onsi/gomega v1.39.1 h1:1IJLAad4zjPn2PsnhH70V4DKRFlrCzGBNrNaru+Vf28=
 github.com/onsi/gomega v1.39.1/go.mod h1:hL6yVALoTOxeWudERyfppUcZXjMwIMLnuSfruD2lcfg=
-github.com/opencontainers/cgroups v0.0.5 h1:DRITAqcOnY0uSBzIpt1RYWLjh5DPDiqUs4fY6Y0ktls=
-github.com/opencontainers/cgroups v0.0.5/go.mod h1:oWVzJsKK0gG9SCRBfTpnn16WcGEqDI8PAcpMGbqWxcs=
+github.com/opencontainers/cgroups v0.0.6 h1:tfZFWTIIGaUUFImTyuTg+Mr5x8XRiSdZESgEBW7UxuI=
+github.com/opencontainers/cgroups v0.0.6/go.mod h1:oWVzJsKK0gG9SCRBfTpnn16WcGEqDI8PAcpMGbqWxcs=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJwooC2xJA040=
