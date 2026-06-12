@@ -1,5 +1,13 @@
 # Release Notes
 
+## 5.8.3
+### Security
+- This release addresses CVE-2026-44517, where building a Dockerfile using a `ADD` or `COPY` instruction accessing a malicious Git repository or tar archive could cause files outside the build context directory to be included in the build context or copied into the build. Please see [GHSA-49p4-px3h-rq49](https://github.com/podman-container-tools/buildah/security/advisories/GHSA-49p4-px3h-rq49) for more details.
+
+### Misc
+- Updated Buildah to v1.43.2
+- Updated gvisor-tap-vsock to v0.8.9
+
 ## 5.8.2
 ### Security
 - This release addresses CVE-2026-33414, where the `podman machine init --image` command when run on Windows using the Hyper-V backend can run Powershell-escaped commands from the user-specified image path on in a Powershell session on the host ([GHSA-hc8w-h2mf-hp59](https://github.com/containers/podman/security/advisories/GHSA-hc8w-h2mf-hp59)).
