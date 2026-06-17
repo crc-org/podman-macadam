@@ -627,6 +627,10 @@ func Start(mc *vmconfigs.MachineConfig, mp vmconfigs.VMProvider, dirs *machineDe
 		return mp.State(mc, true)
 	}
 
+	if opts.MaxBackoffs > 0 {
+		maxBackoffs = opts.MaxBackoffs
+	}
+
 	connected, sshError, err := conductVMReadinessCheck(mc, maxBackoffs, defaultBackoff, stateF)
 	if err != nil {
 		return err
