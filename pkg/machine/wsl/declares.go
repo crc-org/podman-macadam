@@ -50,6 +50,9 @@ const sudoers = `%wheel        ALL=(ALL)       NOPASSWD: ALL
 `
 
 const bootstrapSystemdConfig = `#!/bin/bash
+# Sometimes we need to reassign ssh port, and we have to make sure sshd is running with it
+# https://github.com/crc-org/macadam/issues/368
+systemctl restart sshd
 nohup bash -c 'while true; do sleep 60; done' >/dev/null 2>&1 &
 `
 
