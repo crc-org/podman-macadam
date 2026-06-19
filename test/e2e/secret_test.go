@@ -5,11 +5,14 @@ package integration
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 
 	. "github.com/containers/podman/v5/test/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gexec"
 	"go.podman.io/storage/pkg/stringid"
 )
 
@@ -503,5 +506,45 @@ var _ = Describe("Podman secret", func() {
 		exists := podmanTest.Podman([]string{"secret", "exists", secretName})
 		exists.WaitWithDefaultTimeout()
 		Expect(exists).Should(ExitWithError(1, ""))
+	})
+
+	It("podman secret create with non-default driver does not inherit default driver opts", func() {
+		secretFilePath := filepath.Join(podmanTest.TempDir, "secret")
+		err := os.WriteFile(secretFilePath, []byte("mysecret"), 0o755)
+		Expect(err).ToNot(HaveOccurred())
+
+		// Create a secret with driver=shell but no --driver-opts.
+		// Before the fix, the file driver's default "path" opt bled
+		// into the shell driver, causing "invalid shell driver option".
+		// After the fix, the shell driver correctly receives no
+		// foreign opts and fails only because its required commands
+		// (store, lookup, list, delete) are not configured.
+		session := podmanTest.Podman([]string{
+			"secret", "create", "-d", "shell",
+			"shell-secret", secretFilePath,
+		})
+		session.WaitWithDefaultTimeout()
+		Expect(session).Should(ExitWithError(125, "missing config value"))
+	})
+
+	It("podman secret create from stdin", func() {
+		secretData := "mysecretdata"
+		secretName := "stdin-secret-" + stringid.GenerateRandomID()
+
+		args := []string{"secret", "create", secretName, "-"}
+		podmanOptions := podmanTest.MakeOptions(args, PodmanExecOptions{})
+		cmd := exec.Command(podmanTest.PodmanBinary, podmanOptions...)
+		cmd.Stdin = strings.NewReader(secretData)
+		session, err := Start(cmd, GinkgoWriter, GinkgoWriter)
+		Expect(err).ToNot(HaveOccurred())
+		podmanSession := &PodmanSession{Session: session}
+		podmanSession.WaitWithDefaultTimeout()
+		Expect(podmanSession).Should(ExitCleanly())
+		secrID := podmanSession.OutputToString()
+
+		inspect := podmanTest.Podman([]string{"secret", "inspect", "--showsecret", "--format", "{{.SecretData}}", secrID})
+		inspect.WaitWithDefaultTimeout()
+		Expect(inspect).Should(ExitCleanly())
+		Expect(inspect.OutputToString()).To(Equal(secretData))
 	})
 })

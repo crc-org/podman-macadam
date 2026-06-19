@@ -57,14 +57,14 @@ elif [[ "$1" == "--setup" ]]; then
     # get_ci_vm container entrypoint calls us with this option on the
     # Cirrus-CI environment instance, to perform repo.-specific setup.
     cd $REPO_DIRPATH
-    echo "+ Loading ./contrib/cirrus/lib.sh" > /dev/stderr
-    source ./contrib/cirrus/lib.sh
+    echo "+ Loading ./hack/ci/lib.sh" > /dev/stderr
+    source ./hack/ci/lib.sh
     echo "+ Mimicking .cirrus.yml build_task" > /dev/stderr
     make install.tools
     make binaries
     make docs
     echo "+ Running environment setup" > /dev/stderr
-    ./contrib/cirrus/setup_environment.sh
+    ./hack/ci/setup_environment.sh
 else
     # Pass this repo and CLI args into container for VM creation/management
     mkdir -p $HOME/.config/gcloud/ssh

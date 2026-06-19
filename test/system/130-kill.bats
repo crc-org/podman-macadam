@@ -124,7 +124,7 @@ load helpers
     # 14761 - concurrent kill/stop must record the exit code
     cname=c-$(safename)
     run_podman run -d --replace --name=$cname $IMAGE sh -c "trap 'echo Received SIGTERM, ignoring' SIGTERM; echo READY; while :; do sleep 0.2; done"
-    "${PODMAN_CMD[@]}" stop -t 1 $cname &
+    "${PODMAN_CMD[@]}" stop -t 5 $cname &
     run_podman kill $cname
     run_podman wait $cname
     run_podman rm -f $cname

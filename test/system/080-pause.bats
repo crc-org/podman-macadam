@@ -6,7 +6,9 @@
 load helpers
 load helpers.systemd
 
-# bats test_tags=ci:parallel
+# SHOULD NOT BE PARALLELIZED! The use of podman ps -a makes it timing sensitive
+# as this command takes locks of all containers and parallel containers may
+# block for a while.
 @test "podman pause/unpause" {
     if is_rootless && ! is_cgroupsv2; then
         skip "'podman pause' (rootless) only works with cgroups v2"

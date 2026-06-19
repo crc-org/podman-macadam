@@ -49,7 +49,7 @@
 .NOTES
     Requirements:
       - .NET SDK (https://dotnet.microsoft.com/download)
-      - WiX Toolset (install: dotnet tool install --global wix)
+      - WiX Toolset (install: dotnet tool install --global wix --version 5.0.2)
 
     Environment Variables for signing (optional):
       $ENV:VAULT_ID $ENV:APP_ID $ENV:TENANT_ID
@@ -103,8 +103,8 @@ Write-Host 'Checking requirements (dotnet and wix)'
 
 # Check if .NET SDK is installed
 if (! (Get-Command 'dotnet' -errorAction SilentlyContinue)) {
-    Write-Error "Required dep `".NET SDK`" is not installed. " `
-        + 'Please install it from https://dotnet.microsoft.com/download'
+    Write-Error ("Required dep `".NET SDK`" is not installed. " `
+        + 'Please install it from https://dotnet.microsoft.com/download')
     Exit 1
 }
 
@@ -112,9 +112,9 @@ if (! (Get-Command 'dotnet' -errorAction SilentlyContinue)) {
 Invoke-Expression 'dotnet tool list --global wix' `
     -ErrorAction SilentlyContinue | Out-Null
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "Required dep `"Wix Toolset`" is not installed. " `
+    Write-Error ("Required dep `"Wix Toolset`" is not installed. " `
         + 'Please install it with the command ' `
-        + "`"dotnet tool install --global wix`""
+        + "`"dotnet tool install --global wix --version 5.0.2`"")
     Exit 1
 }
 

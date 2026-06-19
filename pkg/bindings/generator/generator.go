@@ -161,7 +161,15 @@ func main() {
 		closed = true
 
 		// Format file.
-		goimport := exec.Command("../../../bin/golangci-lint", "fmt", out.Name())
+		bin, err := exec.LookPath("../../../bin/golangci-lint")
+		if err != nil {
+			bin, err = exec.LookPath("golangci-lint")
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+		}
+		goimport := exec.Command(bin, "fmt", out.Name())
 		goimport.Stderr = os.Stdout
 		if err := goimport.Run(); err != nil {
 			fmt.Println(err)

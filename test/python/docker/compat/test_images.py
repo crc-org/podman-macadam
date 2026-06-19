@@ -46,6 +46,7 @@ class TestImages(common.DockerTestCase):
 
     def test_search_image(self):
         """Search for image"""
+        self.skipTest("FIXME: search seems broken with our new CI and local registry mirror setup")
         for registry in self.docker.images.search("alpine"):
             # registry matches if string is in either one
             self.assertIn("alpine", registry["Name"] + " " + registry["Description"].lower())

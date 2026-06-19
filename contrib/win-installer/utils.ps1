@@ -16,8 +16,12 @@ function Get-Podman-Setup-From-GitHub {
     )
 
     Write-Host "Downloading the $arch $version Podman windows setup from GitHub..."
-    $apiUrl = "https://api.github.com/repos/containers/podman/releases/$version"
-    $response = Invoke-RestMethod -Uri $apiUrl -Headers @{"User-Agent"="PowerShell"} -ErrorAction Stop
+    $apiUrl = "https://api.github.com/repos/podman-container-tools/podman/releases/$version"
+    $headers = @{"User-Agent"="PowerShell"}
+    if ($env:GITHUB_TOKEN) {
+        $headers["Authorization"] = "Bearer $env:GITHUB_TOKEN"
+    }
+    $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers -ErrorAction Stop
     $latestTag = $response.tag_name
     Write-Host "Looking for an asset named ""podman-installer-windows-$arch.exe"""
     $downloadAsset = $response.assets | Where-Object { $_.name -eq "podman-installer-windows-$arch.exe" } | Select-Object -First 1

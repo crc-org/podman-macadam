@@ -1047,4 +1047,108 @@ var _ = Describe("Podman ps", func() {
 		Expect(output).Should(ContainElement(ContainSubstring("late")))
 	})
 
+	It("podman ps filter should-start-on-boot", func() {
+		commands := [][]string{
+			{"create", "--restart", "unless-stopped", "--name", "test-unless-stopped-user-stop", ALPINE, "top"},
+			{"create", "--restart", "always", "--name", "test-always-user-stop", ALPINE, "top"},
+			{"create", "--restart", "no", "--name", "test-no-restart-user-stop", ALPINE, "top"},
+			{"create", "--restart", "on-failure", "--name", "test-onfailure-user-stop", ALPINE, "top"},
+			{"create", "--restart", "unless-stopped", "--name", "test-unless-stopped-exit-not-started", ALPINE, "false"},
+			{"create", "--restart", "always", "--name", "test-always-exit-not-started", ALPINE, "false"},
+			{"create", "--restart", "on-failure", "--name", "test-onfailure-exit-not-started", ALPINE, "false"},
+			{"start", "test-unless-stopped-user-stop"},
+			{"stop", "test-unless-stopped-user-stop"},
+			{"start", "test-always-user-stop"},
+			{"stop", "test-always-user-stop"},
+			{"start", "test-no-restart-user-stop"},
+			{"stop", "test-no-restart-user-stop"},
+			{"start", "test-onfailure-user-stop"},
+			{"stop", "test-onfailure-user-stop"},
+		}
+
+		for _, cmd := range commands {
+			podmanTest.PodmanExitCleanly(cmd...)
+		}
+
+		commandsExit := [][]string{
+			{"run", "--name", "test-unless-stopped-exit-bad", "--restart", "unless-stopped", ALPINE, "false"},
+			{"run", "--name", "test-always-exit-bad", "--restart", "always", ALPINE, "false"},
+			{"run", "--name", "test-onfailure-exit-bad", "--restart", "on-failure", ALPINE, "false"},
+		}
+
+		for _, cmd := range commandsExit {
+			session := podmanTest.Podman(cmd)
+			session.WaitWithDefaultTimeout()
+			Expect(session).Should(Exit(1))
+		}
+
+		session := podmanTest.PodmanExitCleanly("ps", "-a", "--filter", "should-start-on-boot=true", "--format", "{{.Names}}")
+		output := session.OutputToString()
+
+		Expect(output).To(ContainSubstring("test-unless-stopped-exit-bad"))
+		Expect(output).To(ContainSubstring("test-always-exit-bad"))
+		Expect(output).To(ContainSubstring("test-always-user-stop"))
+
+		Expect(output).ToNot(ContainSubstring("test-unless-stopped-exit-not-started"))
+		Expect(output).ToNot(ContainSubstring("test-always-exit-not-started"))
+		Expect(output).ToNot(ContainSubstring("test-unless-stopped-user-stop"))
+		Expect(output).ToNot(ContainSubstring("test-no-restart-user-stop"))
+		Expect(output).ToNot(ContainSubstring("test-onfailure-user-stop"))
+		Expect(output).ToNot(ContainSubstring("test-onfailure-exit-not-started"))
+		Expect(output).ToNot(ContainSubstring("test-onfailure-exit-bad"))
+
+		session = podmanTest.PodmanExitCleanly("ps", "-a", "--filter", "should-start-on-boot=false", "--format", "{{.Names}}")
+		output = session.OutputToString()
+
+		Expect(output).To(ContainSubstring("test-unless-stopped-user-stop"))
+		Expect(output).To(ContainSubstring("test-no-restart-user-stop"))
+		Expect(output).To(ContainSubstring("test-unless-stopped-exit-not-started"))
+		Expect(output).To(ContainSubstring("test-always-exit-not-started"))
+		Expect(output).To(ContainSubstring("test-onfailure-user-stop"))
+		Expect(output).To(ContainSubstring("test-onfailure-exit-not-started"))
+		Expect(output).To(ContainSubstring("test-onfailure-exit-bad"))
+
+		Expect(output).ToNot(ContainSubstring("test-always-user-stop"))
+		Expect(output).ToNot(ContainSubstring("test-unless-stopped-exit-bad"))
+		Expect(output).ToNot(ContainSubstring("test-always-exit-bad"))
+	})
+
+	It("podman ps filter should-start-on-boot with --service", func() {
+		SkipIfRemote("--service flag is not supported on remote")
+
+		commands := [][]string{
+			{"create", "--restart", "unless-stopped", "--name", "test-unless-stopped-not-user-stop", ALPINE, "top"},
+			{"create", "--restart", "always", "--name", "test-always-not-user-stop", ALPINE, "top"},
+			{"create", "--restart", "no", "--name", "test-no-restart-not-user-stop", ALPINE, "top"},
+			{"create", "--restart", "on-failure", "--name", "test-onfailure-not-user-stop", ALPINE, "top"},
+			{"start", "test-unless-stopped-not-user-stop"},
+			{"start", "test-always-not-user-stop"},
+			{"start", "test-no-restart-not-user-stop"},
+			{"start", "test-onfailure-not-user-stop"},
+			{"stop", "--service", "test-unless-stopped-not-user-stop"},
+			{"stop", "--service", "test-always-not-user-stop"},
+			{"stop", "--service", "test-no-restart-not-user-stop"},
+			{"stop", "--service", "test-onfailure-not-user-stop"},
+		}
+
+		for _, cmd := range commands {
+			podmanTest.PodmanExitCleanly(cmd...)
+		}
+
+		session := podmanTest.PodmanExitCleanly("ps", "-a", "--filter", "should-start-on-boot=true", "--format", "{{.Names}}")
+		output := session.OutputToString()
+
+		Expect(output).To(ContainSubstring("test-unless-stopped-not-user-stop"))
+		Expect(output).To(ContainSubstring("test-always-not-user-stop"))
+		Expect(output).ToNot(ContainSubstring("test-no-restart-not-user-stop"))
+		Expect(output).ToNot(ContainSubstring("test-onfailure-not-user-stop"))
+
+		session = podmanTest.PodmanExitCleanly("ps", "-a", "--filter", "should-start-on-boot=false", "--format", "{{.Names}}")
+		output = session.OutputToString()
+
+		Expect(output).To(ContainSubstring("test-no-restart-not-user-stop"))
+		Expect(output).To(ContainSubstring("test-onfailure-not-user-stop"))
+		Expect(output).ToNot(ContainSubstring("test-unless-stopped-not-user-stop"))
+		Expect(output).ToNot(ContainSubstring("test-always-not-user-stop"))
+	})
 })

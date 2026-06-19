@@ -4,6 +4,7 @@ package bindings_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -103,7 +104,7 @@ func readProc() ([]string, error) {
 				name += err.Error()
 			case d.Type()&fs.ModeSymlink != 0:
 				n, err := os.Readlink(path)
-				if err != nil && !os.IsNotExist(err) {
+				if err != nil && !errors.Is(err, os.ErrNotExist) {
 					return err
 				}
 				if n == "" {

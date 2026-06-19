@@ -172,7 +172,7 @@ func printJSON(data []*dfSummary) error {
 	return nil
 }
 
-func printVerbose(cmd *cobra.Command, reports *entities.SystemDfReport) error { //nolint:interfacer
+func printVerbose(cmd *cobra.Command, reports *entities.SystemDfReport) error {
 	rpt := report.New(os.Stdout, cmd.Name())
 	defer rpt.Flush()
 

@@ -64,8 +64,9 @@ var _ = Describe("Podman container inspect", func() {
 	})
 
 	It("podman inspect exposed ports includes published ports", func() {
+		hostPort := GetPort()
 		c1 := "ctr1"
-		c1s := podmanTest.Podman([]string{"run", "-d", "--expose", "22/tcp", "-p", "8080:80/tcp", "--name", c1, ALPINE, "top"})
+		c1s := podmanTest.Podman([]string{"run", "-d", "--expose", "22/tcp", "-p", fmt.Sprintf("%d:80/tcp", hostPort), "--name", c1, ALPINE, "top"})
 		c1s.WaitWithDefaultTimeout()
 		Expect(c1s).Should(ExitCleanly())
 

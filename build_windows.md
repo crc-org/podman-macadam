@@ -432,12 +432,12 @@ $env:PATH | Select-String -Pattern "Podman"
 ```
 
 :information_source: Podman CI uses script
-`contrib\cirrus\win-installer-main.ps1`. Use it locally, too, to build and test
+`hack\ci\win-installer-main.ps1`. Use it locally, too, to build and test
 the installer:
 
 ```pwsh
-$ENV:CONTAINERS_MACHINE_PROVIDER='wsl'; .\contrib\cirrus\win-installer-main.ps1
-$ENV:CONTAINERS_MACHINE_PROVIDER='hyperv'; .\contrib\cirrus\win-installer-main.ps1
+$ENV:CONTAINERS_MACHINE_PROVIDER='wsl'; .\hack\ci\win-installer-main.ps1
+$ENV:CONTAINERS_MACHINE_PROVIDER='hyperv'; .\hack\ci\win-installer-main.ps1
 ```
 
 ### Uninstall and clean-up

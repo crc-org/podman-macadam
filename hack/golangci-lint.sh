@@ -10,6 +10,10 @@ set -e
 
 declare -a EXTRA_TAGS
 
+# This is where hack/install_golangci.sh install it.
+# Prefer the one from ./bin, if available.
+BIN="$(command -v ./bin/golangci-lint golangci-lint | head -1)"
+
 echo "Linting for GOOS=$GOOS"
 case "$GOOS" in
   windows|darwin)
@@ -31,6 +35,6 @@ for EXTRA in "" "${EXTRA_TAGS[@]}"; do
   # the command-line to focus or debug a single, specific linting category.
   (
     set -x
-    ./bin/golangci-lint run --build-tags="${TAGS}${EXTRA}" "$@"
+    "$BIN" run --build-tags="${TAGS}${EXTRA}" "$@"
   )
 done
