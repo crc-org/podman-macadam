@@ -3,6 +3,7 @@
 package system
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -108,7 +109,7 @@ func service(cmd *cobra.Command, args []string) error {
 
 		// socket activation uses a unix:// socket in the shipped unit files but apiURI is coded as "" at this layer.
 		if uri.Scheme == "unix" && !registry.IsRemote() {
-			if err := syscall.Unlink(uri.Path); err != nil && !os.IsNotExist(err) {
+			if err := syscall.Unlink(uri.Path); err != nil && !errors.Is(err, os.ErrNotExist) {
 				return err
 			}
 			mask := syscall.Umask(0o177)

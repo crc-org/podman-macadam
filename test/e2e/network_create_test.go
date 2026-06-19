@@ -25,7 +25,7 @@ var _ = Describe("Podman network create", func() {
 
 	It("podman network create with name and subnet", func() {
 		netName := "subnet-" + stringid.GenerateRandomID()
-		nc := podmanTest.Podman([]string{"network", "create", "--subnet", "10.11.12.0/24", "--ip-range", "10.11.12.0/26", netName})
+		nc := podmanTest.Podman([]string{"network", "create", "--subnet", "10.11.17.0/24", "--ip-range", "10.11.17.0/26", netName})
 		nc.WaitWithDefaultTimeout()
 		defer podmanTest.removeNetwork(netName)
 		Expect(nc).Should(ExitCleanly())
@@ -43,11 +43,11 @@ var _ = Describe("Podman network create", func() {
 		result := results[0]
 		Expect(result).To(HaveField("Name", netName))
 		Expect(result.Subnets).To(HaveLen(1))
-		Expect(result.Subnets[0].Subnet.String()).To(Equal("10.11.12.0/24"))
-		Expect(result.Subnets[0].Gateway.String()).To(Equal("10.11.12.1"))
+		Expect(result.Subnets[0].Subnet.String()).To(Equal("10.11.17.0/24"))
+		Expect(result.Subnets[0].Gateway.String()).To(Equal("10.11.17.1"))
 		Expect(result.Subnets[0].LeaseRange).ToNot(BeNil())
-		Expect(result.Subnets[0].LeaseRange.StartIP.String()).To(Equal("10.11.12.1"))
-		Expect(result.Subnets[0].LeaseRange.EndIP.String()).To(Equal("10.11.12.63"))
+		Expect(result.Subnets[0].LeaseRange.StartIP.String()).To(Equal("10.11.17.1"))
+		Expect(result.Subnets[0].LeaseRange.EndIP.String()).To(Equal("10.11.17.63"))
 
 		// Once a container executes a new network, the nic will be created. We should clean those up
 		// best we can
@@ -57,7 +57,7 @@ var _ = Describe("Podman network create", func() {
 		try.WaitWithDefaultTimeout()
 		Expect(try).To(ExitCleanly())
 
-		_, subnet, err := net.ParseCIDR("10.11.12.0/24")
+		_, subnet, err := net.ParseCIDR("10.11.17.0/24")
 		Expect(err).ToNot(HaveOccurred())
 		// Note this is an IPv4 test only!
 		containerIP, _, err := net.ParseCIDR(try.OutputToString())
@@ -445,9 +445,9 @@ var _ = Describe("Podman network create", func() {
 	})
 
 	It("podman network create with invalid gateway for subnet", func() {
-		nc := podmanTest.Podman([]string{"network", "create", "--subnet", "10.11.12.0/24", "--gateway", "192.168.1.1", stringid.GenerateRandomID()})
+		nc := podmanTest.Podman([]string{"network", "create", "--subnet", "10.11.15.0/24", "--gateway", "192.168.1.1", stringid.GenerateRandomID()})
 		nc.WaitWithDefaultTimeout()
-		Expect(nc).To(ExitWithError(125, "gateway 192.168.1.1 not in subnet 10.11.12.0/24"))
+		Expect(nc).To(ExitWithError(125, "gateway 192.168.1.1 not in subnet 10.11.15.0/24"))
 	})
 
 	It("podman network create two networks with same name should fail", func() {

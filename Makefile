@@ -96,7 +96,6 @@ endif
 SOURCES = $(shell find . -path './.*' -prune -o \( \( -name '*.go' -o -name '*.c' \) -a ! -name '*_test.go' \) -print) Makefile
 
 BUILDTAGS_CROSS ?= containers_image_openpgp exclude_graphdriver_btrfs exclude_graphdriver_overlay
-CONTAINER_RUNTIME := $(shell command -v podman 2> /dev/null || echo docker)
 OCI_RUNTIME ?= ""
 
 # The 'sort' below is crucial: without it, 'make docs' behaves differently
@@ -265,10 +264,14 @@ help: ## (Default) Print listing of key targets with their descriptions
 ### Linting/Formatting/Code Validation targets
 ###
 
-.PHONY: .gitvalidation
-.gitvalidation: .install.gitvalidation
+.PHONY: .commit-subject-check
+.commit-subject-check:
 	@echo "Validating vs commit '$(call err_if_empty,EPOCH_TEST_COMMIT)'"
-	GIT_CHECK_EXCLUDE="./vendor:./test/tools/vendor:docs/make.bat:test/buildah-bud/buildah-tests.diff:test/e2e/quadlet/remap-keep-id2.container" ./test/tools/build/git-validation -run short-subject -range $(EPOCH_TEST_COMMIT)..$(HEAD)
+	hack/commit-subject-check.sh $(EPOCH_TEST_COMMIT)..$(HEAD)
+
+.PHONY: .check-ci-yaml
+.check-ci-yaml:
+	hack/ci/ci_yaml_test.py
 
 .PHONY: lint
 lint: golangci-lint
@@ -281,6 +284,9 @@ endif
 .PHONY: golangci-lint
 golangci-lint: .install.golangci-lint
 	hack/golangci-lint.sh
+	CGO_ENABLED=0 GOOS=windows hack/golangci-lint.sh
+	CGO_ENABLED=0 GOOS=freebsd hack/golangci-lint.sh
+	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 hack/golangci-lint.sh
 
 .PHONY: test/checkseccomp/checkseccomp
 test/checkseccomp/checkseccomp: $(wildcard test/checkseccomp/*.go)
@@ -310,7 +316,7 @@ codespell:
 
 # Code validation target that **DOES NOT** require building podman binaries
 .PHONY: validate-source
-validate-source: lint .gitvalidation swagger-check tests-expect-exit pr-removes-fixed-skips
+validate-source: lint .commit-subject-check .check-ci-yaml swagger-check tests-expect-exit pr-removes-fixed-skips
 
 # Code validation target that **DOES** require building podman binaries
 .PHONY: validate-binaries
@@ -746,11 +752,7 @@ test-binaries: test/checkseccomp/checkseccomp test/goecho/goecho test/version/ve
 
 .PHONY: tests-included
 tests-included:
-	contrib/cirrus/pr-should-include-tests
-
-.PHONY: test-jira-links-included
-test-jira-links-included:
-	contrib/cirrus/pr-should-link-jira
+	hack/ci/pr-should-include-tests
 
 .PHONY: tests-expect-exit
 tests-expect-exit:
@@ -764,7 +766,7 @@ tests-expect-exit:
 
 .PHONY: pr-removes-fixed-skips
 pr-removes-fixed-skips:
-	contrib/cirrus/pr-removes-fixed-skips
+	hack/ci/pr-removes-fixed-skips
 
 ###
 ### Release/Packaging targets
@@ -991,10 +993,6 @@ install.tools: .install.golangci-lint ## Install needed tools
 .PHONY: .install.ginkgo
 .install.ginkgo:
 	$(GO) build -o $(GINKGO) ./vendor/github.com/onsi/ginkgo/v2/ginkgo
-
-.PHONY: .install.gitvalidation
-.install.gitvalidation:
-	$(MAKE) -C test/tools build/git-validation
 
 .PHONY: .install.golangci-lint
 .install.golangci-lint:

@@ -510,6 +510,7 @@ qe ssh://root@podman.test:2222/run/podman/podman.sock ~/.ssh/id_rsa false true
 		var u *user.User
 
 		BeforeAll(func() {
+			Skip("FIXME: test assumes local ssh key is setup for the own user")
 			// These tests are unique in as much as they require podman, podman-remote, systemd and sshd.
 			// podman-remote commands will be executed by ginkgo directly.
 			SkipIfContainerized("sshd is not available when running in a container")

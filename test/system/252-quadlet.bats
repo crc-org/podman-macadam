@@ -901,20 +901,20 @@ EOF
 }
 
 @test "quadlet - rootfs" {
-    skip_if_no_selinux
     skip_if_rootless
 
-    # Mount a container image to use as rootfs. Because we (may) run in
-    # parallel, mount a working container, not $IMAGE
-    cname="c-$(safename)"
-    run_podman run -d --name $cname $IMAGE top
-    run_podman container mount $cname
+    run_podman image mount $IMAGE
     mountpoint="$output"
+
+    rootfs=$PODMAN_TMPDIR/rootfs
+    cp -a "$mountpoint" "$rootfs"
+
+    run_podman image unmount $IMAGE
 
     local quadlet_file=$PODMAN_TMPDIR/basic_$(safename).container
     cat > $quadlet_file <<EOF
 [Container]
-Rootfs=$mountpoint:O
+Rootfs=$rootfs:O
 Exec=sh -c "echo STARTED CONTAINER; echo "READY=1" | socat -u STDIN unix-sendto:\$NOTIFY_SOCKET; top -b"
 Notify=yes
 EOF
@@ -926,8 +926,6 @@ EOF
 
     # Done. Clean up.
     service_cleanup $QUADLET_SERVICE_NAME failed
-    run_podman container unmount $cname
-    run_podman rm -f -t0 $cname
 }
 
 @test "quadlet - selinux disable" {
@@ -1299,7 +1297,7 @@ spec:
 EOF
 
     # Bind the port to force a an error when starting the pod
-    timeout --foreground -v --kill=10 10 socat TCP-LISTEN:$port,bind=127.0.0.1,fork - &
+    timeout --foreground -v --kill=10 20 socat TCP-LISTEN:$port,bind=127.0.0.1,fork - &
     socat_pid=$!
 
     # Create the Quadlet file
@@ -1318,14 +1316,14 @@ EOF
     echo $output
     assert $status -eq 1 "systemctl start should report failure"
 
+    kill "$socat_pid"
+
     run -0 systemctl show --property=ActiveState $QUADLET_SERVICE_NAME
     assert "$output" == "ActiveState=failed" "unit must be in failed state"
 
     echo "$_LOG_PROMPT journalctl -u $QUADLET_SERVICE_NAME"
     run -0 journalctl -eu $QUADLET_SERVICE_NAME
     assert "$output" =~ "$port: bind: address already in use" "journal contains the real podman start error"
-
-    kill "$socat_pid"
 }
 
 # https://github.com/containers/podman/issues/25786

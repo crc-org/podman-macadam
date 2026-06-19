@@ -788,9 +788,10 @@ nameserver 8.8.8.8" "nameserver order is correct"
         netmodes+=("slirp4netns:port_handler=slirp4netns" "slirp4netns:port_handler=rootlesskit")
     fi
     # pasta only works rootless
-    if is_rootless; then
-        netmodes+=("pasta")
-    fi
+    # FIXME: skip pasta because this is super flaky, https://bugs.passt.top/show_bug.cgi?id=202
+    #if is_rootless; then
+    #    netmodes+=("pasta")
+    #fi
 
     for netmode in "${netmodes[@]}"; do
         local range=$(random_free_port_range 3)

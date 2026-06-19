@@ -1061,9 +1061,9 @@ EXPOSE 2004-2005/tcp`, ALPINE)
 
 	It("podman run with new:pod and static-ip", func() {
 		netName := stringid.GenerateRandomID()
-		ipAddr := "10.25.40.128"
+		ipAddr := "10.25.44.128"
 		podname := "testpod"
-		create := podmanTest.Podman([]string{"network", "create", "--subnet", "10.25.40.0/24", netName})
+		create := podmanTest.Podman([]string{"network", "create", "--subnet", "10.25.44.0/24", netName})
 		create.WaitWithDefaultTimeout()
 		Expect(create).Should(ExitCleanly())
 		defer podmanTest.removeNetwork(netName)

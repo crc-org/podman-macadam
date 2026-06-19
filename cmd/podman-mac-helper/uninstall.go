@@ -48,7 +48,7 @@ func uninstall(_ *cobra.Command, _ []string) error {
 	}
 
 	if err := os.Remove(fileName); err != nil {
-		if !os.IsNotExist(err) {
+		if !errors.Is(err, os.ErrNotExist) {
 			return fmt.Errorf("could not remove plist file: %s", fileName)
 		}
 	}

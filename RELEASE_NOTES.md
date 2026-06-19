@@ -1,5 +1,77 @@
 # Release Notes
 
+## 5.8.3
+### Security
+- This release addresses CVE-2026-44517, where building a Dockerfile using a `ADD` or `COPY` instruction accessing a malicious Git repository or tar archive could cause files outside the build context directory to be included in the build context or copied into the build. Please see [GHSA-49p4-px3h-rq49](https://github.com/podman-container-tools/buildah/security/advisories/GHSA-49p4-px3h-rq49) for more details.
+
+### Misc
+- Updated Buildah to v1.43.2
+- Updated gvisor-tap-vsock to v0.8.9
+
+## 5.8.2
+### Security
+- This release addresses CVE-2026-33414, where the `podman machine init --image` command when run on Windows using the Hyper-V backend can run Powershell-escaped commands from the user-specified image path on in a Powershell session on the host ([GHSA-hc8w-h2mf-hp59](https://github.com/containers/podman/security/advisories/GHSA-hc8w-h2mf-hp59)).
+
+### Bugfixes
+- Fixed a bug where containers with the `unless-stopped` restart policy would not restart after a reboot when `podman-restart.service` was enabled ([#28152](https://github.com/containers/podman/issues/28152)).
+- Fixed a bug where setting `Entrypoint=""` in a Quadlet `.container` file did not clear the container's entrypoint ([#28213](https://github.com/containers/podman/issues/28213)).
+- Fixed a bug where setting a `HealthCmd` in a Quadlet `.container` file to a command that included double-quotes (`"`) would result in a nonfunctional healthcheck due to a parsing issue ([#28409](https://github.com/containers/podman/issues/28409)).
+- Fixed a bug where FreeBSD systems could panic when inspecting containers created with the `host` network mode ([#28289](https://github.com/containers/podman/issues/28289)).
+
+### API
+- Fixed a bug where the Libpod System Check endpoint could perform operations with bad data after returning a 400 error ([#28350](https://github.com/containers/podman/issues/28350)).
+- Fixed a bug where the remote attach API for containers (Libpod & Compat) could panic due to a rare race condition ([#28277](https://github.com/containers/podman/issues/28277)).
+- Fixed a bug where the Secret Create API could not create functional secrets using the `shell` driver due to options from the default driver being improperly added.
+
+### Misc
+- Updated Buildah to v1.43.1
+- Updated the containers/common library to v0.67.1
+- Updated the containers/image library to v5.39.2
+
+## 5.8.1
+### Bugfixes
+- Fixed a critical bug where automatic migration from BoltDB to SQLite after a reboot could perform a partial migration, with some containers in SQLite and some remaining in BoltDB, when Quadlets were in use ([#28215](https://github.com/containers/podman/issues/28216)). For those who encountered this bug with 5.8.0 there is no way to automatically recover. If you do not have persistent containers/pods/volumes (i.e. all containers are run using Quadlets) then the easiest option is to move the `db.sql` file in Podman's storage directory to `db.sql.bak` (or similar) and reboot again with v5.8.1 to attempt another migration. Please contact the maintainers with any issues during migration and we will assist as able.
+
+## 5.8.0
+### Features
+- The `podman quadlet install` command can now install files which contain multiple separate Quadlet files. The files must be separated with a `---` delimeter on a new line, and each section must begin with a `# FileName=<name>` line to name the new Quadlet ([#27384](https://github.com/containers/podman/pull/27384)).
+- Quadlet `.container` files now support a new key, `AppArmor`, for configuring the container's AppArmor profile ([#27095](https://github.com/containers/podman/issues/27095)).
+- When running the `podman artifact add` command against a `podman machine` VM, if the path being loaded or built is shared into the VM, Podman will load it from the VM's filesystem instead of streaming the data through the REST API, improving performance ([#26321](https://github.com/containers/podman/issues/26321)).
+- The `podman update` command now features a new option, `--ulimit`, to update container ulimits ([#26381](https://github.com/containers/podman/issues/26381)).
+- The `podman exec` command now features a new option, `--no-session`, which disables tracking of the exec session to improve performance and startup time ([#26588](https://github.com/containers/podman/issues/26588)).
+
+### Changes
+- Podman will now automatically attempt to migrate legacy BoltDB databases to SQLite when the system reboots. This is necessary as support for BoltDB will be removed in Podman 6.0 in May. If automatic migration is not possible, a new option, `podman system migrate --migrate-db`, will manually force a migration.
+- The `podman secret create -` command no longer requires that the secret be provided through a pipe, and instead allows typing the secret through the terminal ([#27879](https://github.com/containers/podman/issues/27879)).
+
+### Bugfixes
+- Fixed a bug where containers created by `podman play kube` with a healthcheck using the `initialDelaySeconds` option would run healthchecks before the initial delay had expired ([#27678](https://github.com/containers/podman/issues/27678)).
+- Fixed a bug where healthchecks would sometimes fail to execute due to systemd rate limits.
+- Fixed a bug where the `podman export` command would emit a `Mount` event instead of an `Export` event.
+- Fixed a bug where the `podman kube play` command incorrectly handled precedence between environment variables set by both the `envFrom` and `env` fields ([#27287](https://github.com/containers/podman/issues/27287)).
+- Fixed a bug where the `podman kube play` command would panic when parsing Pod YAML missing the `image` field ([#27784](https://github.com/containers/podman/issues/27784)).
+- Fixed a bug where the `podman volume mount` command returned empty paths when volumes were handled by a plugin driver ([#27858](https://github.com/containers/podman/issues/27858)).
+- Fixed a bug where containers created with `--rootfs` instead of from an image would show that they had a healthcheck in the `starting` state even if no healthcheck was defined ([#27651](https://github.com/containers/podman/issues/27651)).
+- Fixed a bug where the `podman build` command's `--pull=newer` option did not function correctly ([#22845](https://github.com/containers/podman/issues/22845)).
+- Fixed a bug where the `RequiresMountsFor` field in Quadlet `.container` files incorrectly handled bind-mount paths which contained spaces.
+- Fixed a bug where the remote Podman client's `podman run --detach-keys` option did not accept an empty string (IE, no detach keys) ([#27414](https://github.com/containers/podman/issues/27414)).
+- Fixed a bug where the remove Podman client's `podman build --secret ... env=VAR` option would incorrectly try to read the environment variable on the server side, instead of from the client ([#27494](https://github.com/containers/podman/issues/27494)).
+- Fixed a bug where the `podman artifact push` and `podman artifact pull` commands ignored authentication credentials given by the `--authfile` option ([#27421](https://github.com/containers/podman/issues/27421)).
+- Fixed a bug where Windows paths were incorrectly handled under some circumstances when using the HyperV machine provider ([#27571](https://github.com/containers/podman/issues/27571)).
+- Fixed a bug where the `podman run --pod-id-file` option was not properly validated, allowing the creation of containers in pods with improper user namespace configuration ([#26848](https://github.com/containers/podman/issues/26848)).
+
+### API
+- Added new APIs for interacting with Quadlets, including `GET /libpod/quadlets/{name}/file` (print contents of a Quadlet file), `GET /libpod/quadlets/{name}/exists` (check if the given Quadlet exists), `POST /libpod/quadlets` (install one or more Quadlets), `DELETE /libpod/quadlets` (remove one or more Quadlets), and `DELETE /libpod/quadlets/{name}` (remove a single Quadlet).
+- Fixed a bug where the Compat and Libpod Logs endpoints for Containers did not use nanosecond-level precision for reported timestamps ([#27961](https://github.com/containers/podman/issues/27691)).
+- Fixed a bug where the Compat Create endpoint for Containers incorrectly handled healthcheck commands with arguments containing spaces ([#26519](https://github.com/containers/podman/issues/26519)).
+- Fixed a bug where the Compat Remove endpoint for Secrets was misnamed as `DELETE /secret/{name}` instead of `DELETE /secrets/{name}` ([#27548](https://github.com/containers/podman/issues/27548)).
+
+### Misc
+- Updated Buildah to v1.43.0
+- Updated the containers/storage library v1.62.0
+- Updated the containers/image library to v5.39.1
+- Updated the containers/common library to v0.67.0
+
 ## 5.7.1
 ### Bugfixes
 - Fixed a bug where adding devices to emulated Linux containers on FreeBSD did not work.

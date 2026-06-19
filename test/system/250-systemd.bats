@@ -55,6 +55,7 @@ function mv-safely() {
 
 # Helper to start a systemd service running a container
 function service_setup() {
+    local extra_args="$1"
     # January 2024: we can no longer do "run_podman generate systemd" followed
     # by "echo $output >file", because generate-systemd is deprecated and now
     # says so loudly, to stderr, with no way to silence it. Since BATS gloms
@@ -65,6 +66,7 @@ function service_setup() {
         run_podman generate systemd --files --name \
                -e http_proxy -e https_proxy -e no_proxy \
                -e HTTP_PROXY -e HTTPS_PROXY -e NO_PROXY \
+               $extra_args \
                --new $cname
         mv-safely "container-$cname.service" $UNIT_FILE
     )
@@ -366,7 +368,7 @@ LISTEN_FDNAMES=listen_fdnames" | sort)
                $IMAGE /home/podman/pause
 
     # run container in systemd unit
-    service_setup
+    service_setup "-e DISABLE_HC_SYSTEMD=true"
 
     run_podman container inspect $cname --format "{{.ID}}"
     oldID="$output"

@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -70,7 +71,7 @@ func service() int {
 	}
 
 	err := os.Remove(dockerSock)
-	if err == nil || os.IsNotExist(err) {
+	if err == nil || errors.Is(err, os.ErrNotExist) {
 		err = os.Symlink(target, dockerSock)
 	}
 

@@ -22,6 +22,7 @@ linters:
     - errchkjson
     - exptostd
     - fatcontext
+    - forbidigo
     - ginkgolinter
     - gocheckcompilerdirectives
     - gochecksumtype
@@ -54,6 +55,17 @@ linters:
     - wastedassign
     - whitespace
   settings:
+    forbidigo:
+      forbid:
+        # os.Is* error checking functions predate errors.Is. Therefore, they
+        # only support errors returned by the os package and subtly fail
+        # to deal with other wrapped error types.
+        # New code should use errors.Is(err, error-type) instead.
+        - pattern: ^os\.Is(Exist|NotExist|Permission|Timeout)$
+          pkg: ^os$
+          msg: Use errors.Is instead.
+      analyze-types: true
+
     staticcheck:
       checks:
         - all

@@ -132,7 +132,7 @@ func handlePut(w http.ResponseWriter, r *http.Request, decoder *schema.Decoder, 
 		})
 	if err != nil {
 		switch {
-		case errors.Is(err, define.ErrNoSuchCtr) || os.IsNotExist(err):
+		case errors.Is(err, define.ErrNoSuchCtr) || errors.Is(err, os.ErrNotExist):
 			// 404 is returned for an absent container and path.  The
 			// clients must deal with it accordingly.
 			utils.Error(w, http.StatusNotFound, fmt.Errorf("the container does not exist: %w", err))

@@ -19,7 +19,7 @@ param (
     [parameter(ValueFromRemainingArguments)][object[]]$params = @()
 )
 
-. ./contrib/cirrus/win-lib.ps1
+. $PSScriptRoot\hack\ci\win-lib.ps1
 
 # Targets
 function Podman-Remote {

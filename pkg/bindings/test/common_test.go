@@ -2,6 +2,7 @@ package bindings_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -31,7 +32,7 @@ const (
 
 func getPodmanBinary() string {
 	_, err := os.Stat(devPodmanBinaryLocation)
-	if os.IsNotExist(err) {
+	if errors.Is(err, os.ErrNotExist) {
 		return defaultPodmanBinaryLocation
 	}
 	return devPodmanBinaryLocation
@@ -156,7 +157,7 @@ func (b *bindingTest) startAPIService() *Session {
 	sock := strings.TrimPrefix(b.sock, "unix://")
 	for range 10 {
 		if _, err := os.Stat(sock); err != nil {
-			if !os.IsNotExist(err) {
+			if !errors.Is(err, os.ErrNotExist) {
 				break
 			}
 			time.Sleep(time.Second)
@@ -267,7 +268,7 @@ func createCache() {
 	b := newBindingTest()
 	for _, i := range CACHE_IMAGES {
 		_, err := os.Stat(filepath.Join(ImageCacheDir, i.tarballName))
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			//	pull the image
 			b.Pull(i.name)
 			b.Save(i)

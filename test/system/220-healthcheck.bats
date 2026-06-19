@@ -104,6 +104,11 @@ Log[-1].Output   | \"Uh-oh on stdout!\\\nUh-oh on stderr!\\\n\"
     assert "$cidmatch" =~ " $cid-[0-9a-f]+\.timer  *.*/podman healthcheck run $cid" \
            "Healthcheck systemd unit exists"
 
+    # Check that the right service option is applied so we don't hit the systemd restart limit.
+    # Even though the code sets StartLimitIntervalSec the systemd command prints StartLimitInterval*U*Sec
+    run -0 systemctl show "$cid-*.service"
+    assert "$output" =~ "StartLimitIntervalUSec=0" "The hc service has the right interval set"
+
     current_time=$(date --iso-8601=ns)
     # After three successive failures, container should no longer be healthy
     _check_health $ctrname "Four or more failures" "
@@ -423,8 +428,10 @@ function _check_health_log {
     msg="hc-msg-$(random_string)"
     hcStatus=$PODMAN_TMPDIR/hcStatus
 
+    # Disable systemd healthcheck in the background as they mess up the timings of the manual commands.
+    export DISABLE_HC_SYSTEMD="true"
     run_podman run -d --name $ctr             \
-           --health-cmd "sleep 20; echo $msg" \
+           --health-cmd "touch /tmp/abc; sleep 20; echo $msg" \
            $IMAGE /home/podman/pause
 
     timeout --foreground -v --kill=10 60 \
@@ -433,6 +440,24 @@ function _check_health_log {
 
     run_podman inspect $ctr --format "{{.State.Status}}"
     assert "$output" == "running" "Container is running"
+
+    ### Flake, sometimes it is possible that the background healthcheck runs so slow that
+    # it starts after the podman stop below and then fails with
+    # "can only create exec sessions on running containers: container state improper".
+    # To fix this we wait for a file th healthcheck creates right away to know it is running.
+    timeout=5
+    while :; do
+        run_podman '?' exec $ctr cat /tmp/abc
+        if [[ "$status" -eq 0 ]]; then
+                break
+        fi
+
+        timeout=$((timeout - 1))
+        if [[ $timeout -eq 0 ]]; then
+            die "timed out waiting for healthcheck to run and create test file"
+        fi
+        sleep 1
+    done
 
     run_podman stop $ctr
 
