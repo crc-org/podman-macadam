@@ -86,7 +86,7 @@ type PodmanTest struct {
 	RemoteTLSClientCertFile string
 	RemoteTLSClientKeyFile  string
 	RemoteTest              bool
-	TempDir                 string
+	TempDir                 string // TempDir is a unique per test directory.
 }
 
 // PodmanSession wraps the gexec.session so we can extend it

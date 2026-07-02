@@ -136,7 +136,7 @@ var _ = Describe("Podman run with volumes", func() {
 	})
 
 	It("podman run with conflicting volumes errors", func() {
-		mountPath := filepath.Join(podmanTest.TmpDir, "secrets")
+		mountPath := filepath.Join(podmanTest.TempDir, "secrets")
 		err := os.Mkdir(mountPath, 0o755)
 		Expect(err).ToNot(HaveOccurred())
 		session := podmanTest.Podman([]string{"run", "-v", mountPath + ":" + dest, "-v", "/tmp" + ":" + dest, ALPINE, "ls"})

@@ -39,12 +39,12 @@ var _ = Describe("Podman mount", func() {
 		opts := podmanTest.PodmanMakeOptions([]string{"mount", cid}, PodmanExecOptions{})
 		args = append(args, opts...)
 
-		// container root file system location is podmanTest.TempDir/...
-		// because "--root podmanTest.TempDir/..."
+		// container root file system location is podmanTest.Root/...
+		// because "--root podmanTest.Root/..."
 		session := podmanTest.Podman(args)
 		session.WaitWithDefaultTimeout()
 		Expect(session).Should(ExitCleanly())
-		Expect(session.OutputToString()).To(ContainSubstring(podmanTest.TempDir))
+		Expect(session.OutputToString()).To(ContainSubstring(podmanTest.Root))
 	})
 
 	It("podman image mount", func() {
@@ -62,11 +62,11 @@ var _ = Describe("Podman mount", func() {
 		opts := podmanTest.PodmanMakeOptions([]string{"image", "mount", CITEST_IMAGE}, PodmanExecOptions{})
 		args = append(args, opts...)
 
-		// image location is podmanTest.TempDir/... because "--root podmanTest.TempDir/..."
+		// image location is podmanTest.Root/... because "--root podmanTest.Root/..."
 		session := podmanTest.Podman(args)
 		session.WaitWithDefaultTimeout()
 		Expect(session).Should(ExitCleanly())
-		Expect(session.OutputToString()).To(ContainSubstring(podmanTest.TempDir))
+		Expect(session.OutputToString()).To(ContainSubstring(podmanTest.Root))
 
 		// We have to unmount the image again otherwise we leak the tmpdir
 		// as active mount points cannot be removed.

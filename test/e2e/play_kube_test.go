@@ -5702,7 +5702,7 @@ spec:
 
 		playKube := podmanTest.Podman([]string{"kube", "play", kubeYaml})
 		playKube.WaitWithDefaultTimeout()
-		Expect(playKube).Should(ExitWithError(125, fmt.Sprintf("securejoin.OpenInRoot testing/onlythis: openat2 %s/root/volumes/testvol/_data/testing/onlythis: no such file or directory", podmanTest.TempDir)))
+		Expect(playKube).Should(ExitWithError(125, fmt.Sprintf("securejoin.OpenInRoot testing/onlythis: openat2 %s/volumes/testvol/_data/testing/onlythis: no such file or directory", podmanTest.Root)))
 	})
 
 	It("with unsafe hostPath subpaths", func() {

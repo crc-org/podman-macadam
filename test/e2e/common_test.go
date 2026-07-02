@@ -69,7 +69,7 @@ type PodmanTestIntegration struct {
 	SignaturePolicyPath string
 	CgroupManager       string
 	Host                HostOS
-	TmpDir              string
+	CliTmpDir           string // value of podman --tmpdir
 }
 
 var (
@@ -375,11 +375,15 @@ func PodmanTestCreateUtil(tempDir string, target PodmanTestCreateUtilTarget) *Po
 		}
 	}
 
+	perTestTempDir := filepath.Join(tempDir, "ptemp")
+	err := os.Mkdir(perTestTempDir, 0o755)
+	Expect(err).ToNot(HaveOccurred())
+
 	p := &PodmanTestIntegration{
 		PodmanTest: PodmanTest{
 			PodmanBinary:       podmanBinary,
 			RemotePodmanBinary: podmanRemoteBinary,
-			TempDir:            tempDir,
+			TempDir:            perTestTempDir,
 			RemoteTest:         target != PodmanTestCreateUtilTargetLocal,
 			ImageCacheFS:       storageFs,
 			ImageCacheDir:      ImageCacheDir,
@@ -389,7 +393,7 @@ func PodmanTestCreateUtil(tempDir string, target PodmanTestCreateUtilTarget) *Po
 		ConmonBinary:        conmonBinary,
 		QuadletBinary:       quadletBinary,
 		Root:                root,
-		TmpDir:              tempDir,
+		CliTmpDir:           filepath.Join(tempDir, "clitmp"),
 		NetworkConfigDir:    networkConfigDir,
 		OCIRuntime:          ociRuntime,
 		RunRoot:             filepath.Join(tempDir, "runroot"),
@@ -1378,7 +1382,7 @@ func (p *PodmanTestIntegration) makeOptions(args []string, options PodmanExecOpt
 	}
 
 	podmanOptions := strings.Split(fmt.Sprintf("%s--root %s --runroot %s --runtime %s --conmon %s --network-config-dir %s --network-backend %s --cgroup-manager %s --tmpdir %s --events-backend %s --db-backend %s",
-		debug, p.Root, p.RunRoot, p.OCIRuntime, p.ConmonBinary, p.NetworkConfigDir, p.NetworkBackend.ToString(), p.CgroupManager, p.TmpDir, eventsType, p.DatabaseBackend), " ")
+		debug, p.Root, p.RunRoot, p.OCIRuntime, p.ConmonBinary, p.NetworkConfigDir, p.NetworkBackend.ToString(), p.CgroupManager, p.CliTmpDir, eventsType, p.DatabaseBackend), " ")
 
 	podmanOptions = append(podmanOptions, strings.Split(p.StorageOptions, " ")...)
 	if !options.NoCache {
