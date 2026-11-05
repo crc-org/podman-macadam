@@ -55,9 +55,13 @@ jobs:
       failure_comment:
         message: "[NON-BLOCKING] Packit jobs failed. @containers/packit-build please check. Everyone else, feel free to ignore."
     enable_net: true
+    # CAUTION: The builds from these jobs are consumed by podman-machine-os
+    # during the release process. Any change here should be mindful of it.
     targets:
-      - fedora-stable-x86_64
-      - fedora-stable-aarch64
+      - fedora-43-x86_64
+      - fedora-43-aarch64
+      - fedora-44-x86_64
+      - fedora-44-aarch64
     # Re-enable these scans if OpenScanHub starts scanning go packages
     # https://packit.dev/posts/openscanhub-prototype
     osh_diff_scan_after_copr_build: false
@@ -94,7 +98,8 @@ jobs:
     packages: [podman-fedora]
     notifications: *packit_generic_failure_notification
     targets:
-      - fedora-stable
+      - fedora-43
+      - fedora-44
     tmt_plan: "/plans/system/*"
 
   - job: tests
@@ -105,8 +110,7 @@ jobs:
       failure_comment:
         message: "Cockpit tests failed for commit {commit_sha}. @martinpitt, @jelly, @mvollmer please check."
     targets:
-      - fedora-latest-stable
-      - fedora-development
+      - fedora-44
     tf_extra_params:
       environments:
         - artifacts:
@@ -124,7 +128,7 @@ jobs:
       failure_comment:
         message: "tmt tests failed for commit {commit_sha}. @lsm5, @psss, @thrix please check."
     targets:
-      - fedora-latest
+      - fedora-44
     fmf_url: https://github.com/teemtee/tmt
     fmf_path: /plans/friends
     fmf_ref: main

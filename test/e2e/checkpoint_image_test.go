@@ -275,7 +275,7 @@ var _ = Describe("Podman checkpoint", func() {
 		Expect(podmanTest.NumberOfContainersRunning()).To(Equal(0))
 	})
 
-	It("podman run with checkpoint image", func() {
+	It("podman run with checkpoint image throws an error", func() {
 		// Container image must be lowercase
 		checkpointImage := "alpine-checkpoint-" + strings.ToLower(RandomString(6))
 		containerName := "alpine-container-" + RandomString(6)
@@ -301,19 +301,7 @@ var _ = Describe("Podman checkpoint", func() {
 		// Restore containers from image using `podman run`
 		result = podmanTest.Podman([]string{"run", checkpointImage})
 		result.WaitWithDefaultTimeout()
-		Expect(result).Should(ExitCleanly())
-		Expect(podmanTest.NumberOfContainersRunning()).To(Equal(1))
-
-		// Check if the container is running
-		status := podmanTest.Podman([]string{"inspect", containerName, "--format={{.State.Status}}"})
-		status.WaitWithDefaultTimeout()
-		Expect(status).Should(ExitCleanly())
-		Expect(status.OutputToString()).To(Equal("running"))
-
-		// Clean-up
-		result = podmanTest.Podman([]string{"rm", "-t", "0", "-fa"})
-		result.WaitWithDefaultTimeout()
-		Expect(result).Should(ExitCleanly())
+		Expect(result).Should(ExitWithError(125, "is a checkpoint and must be started using `podman container restore` instead"))
 		Expect(podmanTest.NumberOfContainersRunning()).To(Equal(0))
 
 		result = podmanTest.Podman([]string{"rmi", checkpointImage})

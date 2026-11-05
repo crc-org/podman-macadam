@@ -74,9 +74,15 @@ fi
 sudo tee $conf <<EOF
 [storage]
 driver = "$STORAGE_FS"
+EOF
+
+# graphroot/runroot were required on older versions so we need it for the old upgrade base version
+if [[ "$TEST" == "upgrade" ]]; then
+    sudo tee --append $conf <<EOF
 graphroot = "/var/lib/containers/storage"
 runroot = "/run/containers/storage"
 EOF
+fi
 
 if [[ -n "$CI_DESIRED_COMPOSEFS" && "$PRIV" == "root" ]]; then
     # Append composefs options

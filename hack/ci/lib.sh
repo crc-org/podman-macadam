@@ -111,3 +111,9 @@ function remove_packaged_podman_files() {
         sudo rm -f "$fullpath"
     done
 }
+
+# Reads and prints the AUTOMATION_RELEASE value from the workflow file.
+# Used for local runs where ci.sh is not triggered by gh actions.
+function get_automation_release() {
+    sed -En 's/.*AUTOMATION_RELEASE:\s(.*)/\1/p' .github/workflows/lima.yml
+}

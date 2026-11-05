@@ -10,6 +10,12 @@ podman\-container\-restore - Restore one or more containers from a checkpoint
 **podman container restore** restores a container from a container checkpoint or
 checkpoint image. The *container IDs*, *image IDs* or *names* are used as input.
 
+Please note that restoring a checkpoint will use the complete security context specified in the checkpoint.
+If a checkpoint specifies that it should be run with full capabilities added and all security features like Seccomp, SELinux, and Apparmor disabled, this will be done.
+Security configuration from **containers.conf** is not used, as the checkpoint must be restored with the originally-specified security configuration.
+As such, restoring a checkpoint is a security sensitive operation and should only be done on checkpoints that are fully trusted.
+It is recommended that checkpoint integrity be ensured at each lifecycle step - creation, storage, retrieval, and restoration.
+
 ## OPTIONS
 #### **--all**, **-a**
 

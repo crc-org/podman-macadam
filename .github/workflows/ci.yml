@@ -199,7 +199,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [fedora-current, fedora-prior, fedora-rawhide, debian-sid]
+        distro: [fedora-current, fedora-prior, debian-sid]
     uses: ./.github/workflows/lima.yml
     with:
       runner: cncf-ubuntu-8-32-x86
@@ -335,16 +335,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [fedora-current, fedora-prior, fedora-rawhide, debian-sid]
+        distro: [fedora-current, fedora-prior, debian-sid]
         test: [sys, int]
         priv: [rootless, root]
         mode: [local, remote]
         exclude:
           # try to keep the task somewhat sane and exclude all but one rootless+remote combination
           - distro: fedora-prior
-            priv: rootless
-            mode: remote
-          - distro: fedora-rawhide
             priv: rootless
             mode: remote
           - distro: debian-sid
@@ -444,7 +441,7 @@ jobs:
           cache: false
       - name: "Install gvproxy"
         run: |
-          VERSION=$(go list -m -f '{{.Version}}' github.com/containers/gvisor-tap-vsock)
+          VERSION=v0.9.0
           echo "Installing gvproxy $VERSION"
           sudo mkdir -p /usr/local/libexec/podman/
           sudo curl --fail -L -o /usr/local/libexec/podman/gvproxy https://github.com/containers/gvisor-tap-vsock/releases/download/$VERSION/gvproxy-linux-${{ matrix.os.arch }}
@@ -457,10 +454,11 @@ jobs:
           sudo ln -sfr /usr/libexec/virtiofsd /usr/local/libexec/podman/virtiofsd
 
       # The default podman ship in ubuntu comes with an old unsupported registries.conf v1 format,
-      # just remove it as we need no special config.
-      - name: "Configure registries.conf"
+      # just remove it as we need no special config. And also the seccomp profile in /etc is wrong
+      # as it triggers a podman build error as the path is send via the API inside we do not have that.
+      - name: "Remove containers configs"
         run: |
-          sudo rm -f /etc/containers/registries.conf
+          sudo rm -f /etc/containers/registries.conf /etc/containers/seccomp.json
 
       # podman-machine needs kvm access
       - name: "Fix kvm permissions"

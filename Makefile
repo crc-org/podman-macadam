@@ -71,7 +71,7 @@ BUILDTAGS += ${EXTRA_BUILDTAGS}
 # N/B: This value is managed by Renovate, manual changes are
 # possible, as long as they don't disturb the formatting
 # (i.e. DO NOT ADD A 'v' prefix!)
-GOLANGCI_LINT_VERSION := 2.5.0
+GOLANGCI_LINT_VERSION := 2.9.0
 PYTHON ?= $(shell command -v python3 python|head -n1)
 PKG_MANAGER ?= $(shell command -v dnf yum|head -n1)
 # ~/.local/bin is not in PATH on all systems
@@ -215,7 +215,7 @@ export GOOS GOARCH CGO_ENABLED BINSFX SRCBINDIR
 
 # gvisor-tap-vsock version for gvproxy.exe and win-sshproxy.exe downloads
 # the upstream project ships pre-built binaries since version 0.7.1
-GVPROXY_VERSION=$(shell $(GO) list -m -f '{{.Version}}' github.com/containers/gvisor-tap-vsock)
+GVPROXY_VERSION=v0.9.0
 
 ###
 ### Primary entry-point targets

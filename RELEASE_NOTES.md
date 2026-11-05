@@ -1,5 +1,40 @@
 # Release Notes
 
+## 5.8.9
+### Bugfixes
+- Fixed an issue where Podman would not function when run under WSL 3 ([#29749](https://github.com/podman-container-tools/podman/issues/29749)).
+- Fixed a bug with `podman machine` VMs on Mac where machines could be left in an inconsistent state if the `podman machine start` command was interrupted by a signal.
+
+### Misc
+- Updated gvproxy to v0.9.0, resolving CVE-2026-107935
+- Updated Buildah to v1.43.5
+- Updated Storage to v1.62.2
+
+## 5.8.8
+- This release addresses [CVE-2026-94603](https://github.com/podman-container-tools/podman/security/advisories/GHSA-2cvf-wqm6-wr9g), where a `podman run` on a checkpoint image (any image with the `io.podman.annotations.checkpoint.runtime.name` annotation) could disable all sandboxing, including sandboxing specified by the user, when the container was created.
+
+### Breaking Changes
+- Removed support for checkpoint images in `podman run` due to serious security concerns with the different security models of running images and running checkpoints. Checkpoints ignore user-specified security configuration and are very difficult to run safely.
+
+## 5.8.7
+### Security
+- This release addresses ([CVE-2025-11395](https://github.com/podman-container-tools/container-libs/security/advisories/GHSA-3gcv-x57j-xqxv)), where importing images containing crafted layer tarballs with the `podman load` command, or importing volumes containing crafted symlinks with `podman volume import`, allows overwriting files on the host.
+- This release also addresses [CVE-2026-79699](https://github.com/podman-container-tools/container-libs/security/advisories/GHSA-mmq6-9mjh-hvq3) and [CVE-2026-79705](https://github.com/podman-container-tools/buildah/security/advisories/GHSA-3528-5p26-cf44), though we do not believe these CVEs are exploitable through the Podman command line.
+
+### Misc
+- Updated Buildah to v1.43.4
+- Updated Common to v0.67.2
+- Updated Image to v5.39.3
+- Updated Storage to v1.62.1
+
+## 5.8.6
+### Security
+- This release addressed [CVE-2026-19730](https://github.com/podman-container-tools/podman/security/advisories/GHSA-fx76-2j3w-2mx6) where the `podman quadlet install --replace` command did not truncate the file being replaced, meaning replacing a longer file with a shorter one would result in content from the original file incorrectly being retained.
+
+## 5.8.5
+### Bugfixes
+- Fixed a bug where Podman Machine VMs on Mac using the libkrun provider could be regularly turned off by a port-scanning process on the host unintentionally commanding the VM to shut down.
+
 ## 5.8.4
 ### Security
 - This release addresses CVE-2026-57231, where a malicious image using malformed `Env` entries could cause host environment variables to leak into containers run based on the image, including the ability to use the `*` glob operator to leak large numbers of environment variables without knowing their exact names ([GHSA-4hq8-gpf5-8p68](https://github.com/podman-container-tools/podman/security/advisories/GHSA-4hq8-gpf5-8p68)).
