@@ -5,6 +5,7 @@ package vsock
 import (
 	"testing"
 
+	"github.com/containers/podman/v5/pkg/machine/env"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -66,7 +67,7 @@ func TestEntryCanBeReusedBy(t *testing.T) {
 		Purpose:                Network,
 		Port:                   0x400,
 		MachineName:            "test",
-		ToolName:               PodmanToolName,
+		ToolName:               env.GetToolName(),
 		KeepAfterMachineRemove: true,
 	}
 

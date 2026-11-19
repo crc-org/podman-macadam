@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/Microsoft/go-winio"
+	"github.com/containers/podman/v5/pkg/machine/env"
 	"github.com/containers/podman/v5/pkg/machine/sockets"
 	"github.com/containers/podman/v5/utils"
 	"github.com/sirupsen/logrus"
@@ -30,8 +31,6 @@ const (
 	HvsockMachineName = "MachineName"
 	// HvsockToolName is the string identifier for the tool name in a registry entry
 	HvsockToolName = "ToolName"
-	// PodmanToolName is the tool name stored in registry entries created by this library
-	PodmanToolName = "podman"
 	// HvsockPurpose is the string identifier for the sock purpose in a registry entry
 	HvsockPurpose = "Purpose"
 	// HvsockKeepAfterMachineRemove is a flag to avoid that the entry gets deleted when
@@ -257,7 +256,7 @@ func NewHVSockRegistryEntry(machineName string, purpose HVSockPurpose) (*HVSockR
 		Purpose:     purpose,
 		Port:        port,
 		MachineName: machineName,
-		ToolName:    PodmanToolName,
+		ToolName:    env.GetToolName(),
 		// entries created here are owned by the machine and removed with it;
 		// pre-created reusable entries are loaded from the registry instead
 		KeepAfterMachineRemove: false,
