@@ -201,6 +201,9 @@ func (h HyperVStubber) Remove(mc *vmconfigs.MachineConfig) ([]string, func() err
 
 		// Tear down vsocks. Entries marked with KeepAfterMachineRemove are kept.
 		removeNetworkAndReadySocketsFromRegistry(mc)
+		if err := removeShares(mc); err != nil {
+			errs = append(errs, fmt.Errorf("unable to remove file server vsock registry entries: %w", err))
+		}
 
 		// Remove ignition registry entries - not a fatal error
 		// for vm removal
